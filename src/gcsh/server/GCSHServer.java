@@ -19,7 +19,11 @@ public class GCSHServer {
         /*
         Please run Server_and_bluetooth.java
         you also need to add some jar files in the libraries
+<<<<<<< HEAD
         tested on pearson's laptop
+=======
+        testing .....
+>>>>>>> origin/master
         */
     }
     
