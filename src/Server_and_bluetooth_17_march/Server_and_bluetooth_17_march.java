@@ -1,24 +1,11 @@
 /*
+ * @author Ägaren
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 package Server_and_bluetooth_17_march;
 
-/**
- *
- * @author Ägaren
- */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
@@ -34,7 +21,6 @@ import javax.bluetooth.ServiceRecord;
 import javax.bluetooth.UUID;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
-import java.lang.Thread;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,40 +44,14 @@ class EchoHandler extends Thread implements Runnable, DiscoveryListener {
 
     String userInput = "hrj";
     Socket client;
-    //StreamConnection con = null;//(StreamConnection) Connector.open("btspp://00066608BB69:1");
-    //StreamConnection con1 = null;//(StreamConnection) Connector.open("btspp://00066608BB6A:1");
-    //OutputStream os = null;//con.openOutputStream();
-    //OutputStream os1 = null;//con1.openOutputStream();
-    //DataOutputStream dataOutputStream = null;//new DataOutputStream(os);
-    //DataOutputStream dataOutputStream1 = null;//new DataOutputStream(os1);
-    //String hostName="194.47.44.145"; //same cheng
-    //int portNumber = 8080; // ......................................................uncoimmment
     Socket echoSocket = null;
-    //PrintWriter outToContext = null; 
-    //BufferedReader in = null;
-    //BufferedReader stdIn = null;
-    //InetAddress ip = null;
     EchoHandler listener = this;
 
     EchoHandler(Socket client) {//,StreamConnection con, StreamConnection con1,OutputStream os,OutputStream os1,DataOutputStream dataOutputStream,DataOutputStream dataOutputStream1 ) throws IOException {
         this.client = client;
         devices = new ArrayList<RemoteDevice>();
-        /* try {
-         con = (StreamConnection) Connector.open("btspp://00066608BB69:1");
-         os = con.openOutputStream();
-         dataOutputStream = new DataOutputStream(os);
-         } catch (IOException ex) {
-         Logger.getLogger(EchoHandler.class.getName()).log(Level.SEVERE, null, ex);
-         } */
-        /*try {
-         con1 = (StreamConnection) Connector.open("btspp://00066608BB6A:1");
-         os1 = con.openOutputStream();
-         dataOutputStream1 = new DataOutputStream(os);
-         } catch (IOException ex) {
-         Logger.getLogger(EchoHandler.class.getName()).log(Level.SEVERE, null, ex);
-         }*/
-        //  System.out.println("**** In RFcommclient run method **** Service URL = " + "btspp://00066608BB69:1" + ".");
     }// end constructor
+
     private static Object lock = new Object();
     public ArrayList<RemoteDevice> devices;
     LocalDevice localDevice;
@@ -159,31 +119,7 @@ class EchoHandler extends Thread implements Runnable, DiscoveryListener {
                         }
                         System.out.println("end of android data................................");
                         //sendMessageToDevice("btspp://00066608BB6A:1","1");
-                        /*
-                         android_accelerometer[3] = Double.parseDouble(token0[3]);
-                         if (android_accelerometer[3] >= 6.1 && android_accelerometer[3] <= 7.1) {
-                         System.out.println(android_accelerometer[3]);
-                         System.out.println("mobile up");
-                         //ToContextServer = "h";
-                         ToContextServer = "1";
-                         //sendMessageToDevice("btspp://00066608BB6A:1",ToContextServer);
-                         }
-                         if (android_accelerometer[3] <= -6.1 && android_accelerometer[3] >= -7.1) {
-                         System.out.println(android_accelerometer[3]);
-                         System.out.println("mobile down");
-                         ToContextServer = "2";
-                         //sendMessageToDevice("btspp://00066608BB6A:1",ToContextServer);
-                         }
-                         */
-                        /*
-                         command[1]=Integer.parseInt(token0[1]);
-                         if(command[1]==1){
-                         ToContextServer = "1";
-                         }
-                         if(command[1]==2){
-                         ToContextServer = "2";
-                         }
-                         */
+
 //3rd format ; 2016.03.17
                         //..................... ROOM 1 .......................................
                         if (token0[2].equals("R1")) {
@@ -333,8 +269,7 @@ class EchoHandler extends Thread implements Runnable, DiscoveryListener {
                             System.out.println(token1[k] + ";"); // don't count ;,
                         }
                         //
-                        System.out
-                                .println("end of Kinect data.................................");
+                        System.out.println("end of Kinect data.................................");
                         System.out.println("***********************");
                         System.out.println("x");
                         for (int v = 6; v < token1.length; v += 6) {
@@ -342,21 +277,6 @@ class EchoHandler extends Thread implements Runnable, DiscoveryListener {
                             coordinate_y[v + 1] = Double.parseDouble(token1[v + 1]);
                             System.out.println(token1[v + 1]);
                         }// for
-                        //2nd format
-                                /*
-                         if ((coordinate_y[19] > coordinate_y[13])
-                         && (coordinate_y[13] > coordinate_y[7])) {
-                         System.out.println("right hand up");
-                         ToContextServer = "h";
-                         }
-                         if ((coordinate_y[19] < coordinate_y[13])
-                         && (coordinate_y[13] < coordinate_y[7])) {
-                         System.out.println("right hand down");
-                                   
-                         ToContextServer = "j";
-                         }
-                                
-                         */
                         //      ..........................  2nd = 3rd format  ..........................................
                         //..................... ROOM 1 .......................................
                         if (token1[2].equals("R1")) {
@@ -492,28 +412,6 @@ class EchoHandler extends Thread implements Runnable, DiscoveryListener {
                         }//R3
                     }// if for kinect
                     System.out.println("HHHHHH 1");
-//               char c = ToContextServer.charAt(0);
-//
-//               //char c = "1".charAt(0);
-//
-//               byte buffer[] = new byte[6];
-//
-//                      //buffer[0] = '2';// MT if you want to turn on=1, if you want to turn off 2
-//
-//                       buffer[0] = (byte) c;
-//                       
-//
-//                       System.out.println("Client Connection opened at " + con.toString());           
-//
-//                       dataOutputStream.flush();
-//
-//                       os.write(buffer);
-//
-//                       System.out.println("Client Connection opened at " + con1.toString());           
-//
-//                       dataOutputStream.flush();
-//
-//                       os.write(buffer);
                     String[] token0 = line.split("A|K|:| |#"); // == parseInt ; Data
                 }//end while(true)
             } catch (Exception e) {
