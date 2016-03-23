@@ -6,6 +6,7 @@
  */
 package Server_and_bluetooth_17_march;
 
+
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import javax.bluetooth.ServiceRecord;
 import javax.bluetooth.UUID;
 import javax.microedition.io.Connector;
 import javax.microedition.io.StreamConnection;
+import java.lang.Thread;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,7 +53,7 @@ class EchoHandler extends Thread implements Runnable, DiscoveryListener {
         this.client = client;
         devices = new ArrayList<RemoteDevice>();
     }// end constructor
-
+    
     private static Object lock = new Object();
     public ArrayList<RemoteDevice> devices;
     LocalDevice localDevice;
@@ -94,6 +96,7 @@ class EchoHandler extends Thread implements Runnable, DiscoveryListener {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(
                         client.getInputStream()));
@@ -119,7 +122,7 @@ class EchoHandler extends Thread implements Runnable, DiscoveryListener {
                         }
                         System.out.println("end of android data................................");
                         //sendMessageToDevice("btspp://00066608BB6A:1","1");
-
+                        
 //3rd format ; 2016.03.17
                         //..................... ROOM 1 .......................................
                         if (token0[2].equals("R1")) {
