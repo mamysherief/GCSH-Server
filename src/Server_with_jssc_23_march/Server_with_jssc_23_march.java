@@ -3,6 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+ 
+ /****************************************************************************
+ * Last version -prepared for the sensors ************************************
+ ****************************************************************************/
 package Server_with_jssc_23_march;
 
 
