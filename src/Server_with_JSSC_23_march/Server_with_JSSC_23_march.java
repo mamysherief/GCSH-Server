@@ -3,253 +3,309 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package server_with_jssc_23_march;
+package Server_with_JSSC_23_march;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.io.*;
-import java.net.*;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.lang.Thread;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jssc.*;
- 
 
-public class Server_with_JSSC_23_march {
+public class Server_with_JSSC_23_march implements Callbackhome{
+    
+    Socket contextSocket;
+    PrintWriter outToContext;
+    
+    String hostName = "194.47.32.117"; // context server adress
+    int portNumber = 4444;
 
-              public static void main(String[] args) {
-                    // get computer serial ports names
-                    /*String[] portNames = SerialPortList.getPortNames();
+    public Server_with_JSSC_23_march() {
+        try {
+            contextSocket = new Socket(hostName, portNumber);
+        } catch (IOException ex) {
+            Logger.getLogger(Server_with_JSSC_23_march.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
+
+    @Override
+    public void prt_to_context(String value){
+        try {
+            outToContext = new PrintWriter(contextSocket.getOutputStream(), true);
+            outToContext.println(value );
+            //outToContext.close();
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Server_with_JSSC_23_march.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    public static void main(String[] args) {
+        // get computer serial ports names
+        /*String[] portNames = SerialPortList.getPortNames();
                        for (String port : portNames) {
                         System.out.println(port);
                     }*/
-      SerialPort [] serialPorts = new SerialPort[7];
-      serialPorts[0] = new SerialPort("COM13"); //floor lamp BB6A
-      //serialPorts[1] = new SerialPort("COM7"); //ceiling lamp BB69
-      //serialPorts[2] = new SerialPort("COMX"); // certain 
-      //serialPorts[3] = new SerialPort("COMX"); //ceiling lamp
+        Callbackhome call = new Server_with_JSSC_23_march();
+        
+        SerialPort[] serialPorts = new SerialPort[7];
+        serialPorts[0] = new SerialPort("COM41"); //floor lamp BB6A
+        serialPorts[1] = new SerialPort("COM45"); //ceiling lamp BB69
+        serialPorts[2] = new SerialPort("COM46"); // certain 
+        serialPorts[3] = new SerialPort("COM47"); //fan
 
-       SerialPort [] sensorer = new SerialPort[3];
-       //sensorer[0] = new SerialPort("COM40");
-       sensorer[1] = new SerialPort("COM42");
-       sensorer[2] = new SerialPort("COM43");
+        SerialPort[] sensorer = new SerialPort[3];
+        //sensorer[0] = new SerialPort("COM40"); //Christians sensor
+        sensorer[1] = new SerialPort("COM42");// Sensor 1 Humidity+Temperature
+        //sensorer[2] = new SerialPort("COM43"); // Sensor 2 CO2+ temperature
 
-                try {
-                    
-                    ServerSocket server = new ServerSocket(4444);     
-                        try {
-                                // open port for communication
-                                //System.out.println("OPEN PORT 0");
-                                //serialPorts[0].openPort();
-                                //System.out.println("OPEN PORT 1");
-                                //serialPorts[1].openPort();
-                                
-                                //serialPorts[2].openPort();
-                                //serialPorts[3].openPort();
-                                //sensorer[0].openPort();
-                                System.out.println("OPEN SENSOR-PORT DONE");
-                                sensorer[1].openPort();
-                                sensorer[2].openPort();
-                                
-                                // baundRate, numberOfDataBits, numberOfStopBits, parity
-                                //serialPorts[0].setParams(9600, 8, 1, 0);
-                                //serialPorts[1].setParams(9600, 8, 1, 0);
-                                //serialPorts[2].setParams(9600, 8, 1, 0);
-                                //serialPorts[3].setParams(9600, 8, 1, 0);
-                                
-                                //sensorer[0].setParams(9600, 8, 1, 0);
-                                sensorer[1].setParams(9600, 8, 1, 0);
-                                sensorer[2].setParams(9600, 8, 1, 0);
-                                
-                                SensorThread sensor = new SensorThread(sensorer);
-                                  System.out.println("** SensorThread sensor = new SensorThread(sensorer);");
-                                sensor.start();
-                                  System.out.println("** sensor.start();");
+//        String hostName = "194.47.32.117"; // context server adress
+//        int portNumber = 4444;
+//        Socket contextSocket;
+//        PrintWriter outToContext = null;
 
-                                
-                                // close port
-                                //serialPort.closePort();
-                             } catch (SerialPortException ex) {
-                                System.out.println(ex);
-                             }
+        try {
 
-                         while (true) {
-                                         Socket client = server.accept();
-                                         EchoHandler handler = new EchoHandler(client,serialPorts);
-                                         handler.start();
-                                         
-                                                }
-                                } catch (Exception e) {
-                                                System.err.println("Exception caught:" + e);
-                                }
-                } // main
+            ServerSocket server = new ServerSocket(4444);
+
+            
+            //outToContext = new PrintWriter(contextSocket.getOutputStream(), true);
+
+            try {
+                // open port for communication
+                serialPorts[0].openPort();
+                serialPorts[1].openPort();
+                serialPorts[2].openPort();
+                serialPorts[3].openPort();
+                //sensorer[0].openPort();                               
+                sensorer[1].openPort();
+                //sensorer[2].openPort();
+                System.out.println("OPEN SERIAL PORT -PORT DONE");
+
+                // baundRate, numberOfDataBits, numberOfStopBits, parity
+                serialPorts[0].setParams(9600, 8, 1, 0);
+                serialPorts[1].setParams(9600, 8, 1, 0);
+                serialPorts[2].setParams(9600, 8, 1, 0);
+                serialPorts[3].setParams(9600, 8, 1, 0);
+
+                //sensorer[0].setParams(9600, 8, 1, 0);
+                sensorer[1].setParams(9600, 8, 1, 0);
+                //sensorer[2].setParams(9600, 8, 1, 0);
+
+                SensorThread sensor = new SensorThread(sensorer,call);
+                System.out.println("** SensorThread sensor = new SensorThread(sensorer);");
+                sensor.start();
+                System.out.println("** sensor.start();");
+
+                // close port
+                //serialPort.closePort();
+            } catch (SerialPortException ex) {
+                System.out.println(ex);
+            }
+
+            while (true) {
+                Socket client = server.accept();
+                EchoHandler handler = new EchoHandler(client, serialPorts ,call);
+                handler.start();
+
+            }
+        } catch (Exception e) {
+            System.err.println("Exception caught:" + e);
+        }
+    } // main
 
 }//ThreadServer_ContextClient
 
 class SensorThread extends Thread {
-ServerSocket server;
-SerialPort [] sensorsCOM_ports= null;
-int nbr_in_room_A = 0;
-int nbr_in_room_B = 0; 
 
-public SensorThread(SerialPort [] sensorer){
-    try {
-        this.server = new ServerSocket(9999);
-        System.out.println("** this.server = new ServerSocket(9999); *****");
-        
-    } catch (IOException ex) {
-        Logger.getLogger(SensorThread.class.getName()).log(Level.SEVERE, null, ex);
+    ServerSocket server;
+    SerialPort[] sensorsCOM_ports = null;
+    int nbr_in_room_A = 0;
+    int nbr_in_room_B = 0;
+    Callbackhome call;
+
+    Socket contextSocket;
+    PrintWriter outToContext = null;
+
+    public SensorThread(SerialPort[] sensorer, Callbackhome call) {
+        this.call = call;
+        try {
+            this.server = new ServerSocket(9999);
+            //  this.contextSocket = contextSocket;
+            System.out.println("** this.server = new ServerSocket(9999); *****");
+            // outToContext = new PrintWriter(contextSocket.getOutputStream(), true);
+
+        } catch (IOException ex) {
+            Logger.getLogger(SensorThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        sensorsCOM_ports = sensorer;
     }
-    sensorsCOM_ports = sensorer;
-}
 
-@Override
+    @Override
     public void run() {
- 
-    /************* Christian Sensor ****************************/
-     byte[] buffer=null;
 
-     /************* Sensor 1 ****************************/ 
-     String[] read_string_array_from_input_sensor_1 = null;
-     String[] array_from_input_sensor_1 = new String [12];
-     int counter_sensor_1 = 0;
-     int num_sensor_1 = 0;
-              
-    /************* Sensor 2 ****************************/ 
-     String[] read_string_array_from_input_sensor_2 = null;
-     String[] array_from_input_sensor_2 = new String [12];
-     int counter_sensor_2 = 0;
-     int num_sensor_2 = 0;
-          
-    /************** end sensors ***************************/
-        while(true){
-           
+        /**
+         * *********** Christian Sensor ***************************
+         */
+        byte[] buffer = null;
+
+        /**
+         * *********** Sensor 1 ***************************
+         */
+        String[] read_string_array_from_input_sensor_1 = null;
+        String[] array_from_input_sensor_1 = new String[12];
+        int counter_sensor_1 = 0;
+        int num_sensor_1 = 0;
+
+        /**
+         * *********** Sensor 2 ***************************
+         */
+        String[] read_string_array_from_input_sensor_2 = null;
+        String[] array_from_input_sensor_2 = new String[12];
+        int counter_sensor_2 = 0;
+        int num_sensor_2 = 0;
+        
+        /**
+         * ************ end sensors **************************
+         */
+        while (true) {
+
             //System.out.println("** SENSOR THREAD ACCEPT, IN RUN():*************************************");
             try {
-              /****************** START CHRISTIAN SENSOR *********************/ 
-               //buffer = sensorsCOM_ports[0].readBytes(1);//1
-                  /*if(buffer[0]=='A'){
-                    System.out.println("A");
-                    ++nbr_in_room_A;
-                    System.out.println("NBR IN ROOM A:"+ nbr_in_room_A);
-                    if(nbr_in_room_B>0){
-                    --nbr_in_room_B;
-                    }
-                   //output message to context: A nbr of person, B nbr of persons
-                }   
-                if(buffer[0]=='B'){
-                    System.out.println("B");
-                    ++nbr_in_room_B;
-                     System.out.println("NBR IN ROOM B:"+ nbr_in_room_B);
-                    if(nbr_in_room_A>0){
-                    --nbr_in_room_A;
-                    }
-                   //output message to context: A nbr of person, B nbr of persons
-                }    */  
-              /****************** END CHRISTIAN SENSOR *********************/  
-                
-               
-                /****************** START COMPORT 1 *********************/
+                /**
+                 * **************** START CHRISTIAN SENSOR ********************
+                 */
+//               buffer = sensorsCOM_ports[0].readBytes(1);//1
+//                if(buffer[0]=='A'){
+//                    System.out.println("A");
+//                    ++nbr_in_room_A;
+//                    System.out.println("NBR IN ROOM A:"+ nbr_in_room_A);
+//                    if(nbr_in_room_B>0){
+//                    --nbr_in_room_B;
+//                    }             
+//                }   
+//                if(buffer[0]=='B'){
+//                    System.out.println("B");
+//                    ++nbr_in_room_B;
+//                     System.out.println("NBR IN ROOM B:"+ nbr_in_room_B);
+//                    if(nbr_in_room_A>0){
+//                    --nbr_in_room_A;
+//                    }
+//                }    
+//               call.prt_to_context("R1SENSORBP"+nbr_in_room_A+"#");
+//               call.prt_to_context("R2SENSORBP"+nbr_in_room_B+"#");
+
+                /**
+                 * **************** END CHRISTIAN SENSOR ********************
+                 */
+                /**
+                 * **************** START COMPORT 1 ********************
+                 */
                 int x_sensor_1 = 0;
                 int y_sensor_1 = 0;
                 int x_temp_sensor_1 = 0;
                 int y_temp_sensor_1 = 0;
                 read_string_array_from_input_sensor_1 = sensorsCOM_ports[1].readHexStringArray(1);//
 
-                array_from_input_sensor_1[counter_sensor_1] =  read_string_array_from_input_sensor_1[0];
+                array_from_input_sensor_1[counter_sensor_1] = read_string_array_from_input_sensor_1[0];
                 counter_sensor_1++;
-                if(counter_sensor_1 == 12)
-                {
-                   for( num_sensor_1 = 0;num_sensor_1 < 10; num_sensor_1++)
-                    {
-                        if(array_from_input_sensor_1[num_sensor_1].equals("52")){
-                            x_sensor_1 = Integer.valueOf(array_from_input_sensor_1[num_sensor_1+1], 16);
-                            y_sensor_1 = Integer.valueOf(array_from_input_sensor_1[num_sensor_1+2], 16);
+                if (counter_sensor_1 == 12) {
+                    for (num_sensor_1 = 0; num_sensor_1 < 10; num_sensor_1++) {
+                        if (array_from_input_sensor_1[num_sensor_1].equals("52")) {
+                            x_sensor_1 = Integer.valueOf(array_from_input_sensor_1[num_sensor_1 + 1], 16);
+                            y_sensor_1 = Integer.valueOf(array_from_input_sensor_1[num_sensor_1 + 2], 16);
                         }
-                        if(array_from_input_sensor_1[num_sensor_1].equals("54")){                          
-                            x_temp_sensor_1 = Integer.valueOf(array_from_input_sensor_1[num_sensor_1+1], 16);
-                            y_temp_sensor_1 = Integer.valueOf(array_from_input_sensor_1[num_sensor_1+2], 16);
-                        }                    
+                        if (array_from_input_sensor_1[num_sensor_1].equals("54")) {
+                            x_temp_sensor_1 = Integer.valueOf(array_from_input_sensor_1[num_sensor_1 + 1], 16);
+                            y_temp_sensor_1 = Integer.valueOf(array_from_input_sensor_1[num_sensor_1 + 2], 16);
+                        }
                     }
-                    counter_sensor_1 = 0;                  
-                
-               // System.out.println(Arrays.toString(array_from_input_sensor_2));
-                //System.out.print(x_sensor_1);
-                //System.out.print(y_sensor_1); 
-               /*int humidity1 =x_sensor_1*256+y_sensor_1;
+                    counter_sensor_1 = 0;
+
+                    // System.out.println(Arrays.toString(array_from_input_sensor_2));
+                    //System.out.print(x_sensor_1);
+                    //System.out.print(y_sensor_1); 
+                    /*int humidity1 =x_sensor_1*256+y_sensor_1;
                 int temp_sensor_1 = x_temp_sensor_1*256+y_temp_sensor_1;*/
-                
-                double humidityEquation =(x_sensor_1*256+y_sensor_1)/1024.0*100;
-                double temperatureEquation =((x_sensor_1*256+y_sensor_1)/1024.0*108-32)/1.8;
-                
-                System.out.println("Humidity SENSOR 1: "+ humidityEquation);
-                System.out.println("Temperature SENSOR 1: "+ temperatureEquation);
-                
+                    double humidityEquation = (x_sensor_1 * 256 + y_sensor_1) / 1024.0 * 100;
+                    double temperatureEquation = ((x_sensor_1 * (256 + y_sensor_1)) / 1024.0 * 108 + 23) / 1.8;
+
+                    System.out.println("Humidity SENSOR 1: " + humidityEquation);
+                    call.prt_to_context("Humidity SENSOR 1: " + humidityEquation);
+                   // outToContext.println("SENSOR8AH" + humidityEquation + "#");
+
+                    System.out.println("Temperature SENSOR 1: " + temperatureEquation);
+
+                    //outToContext.println("SENSOR8AT" + temperatureEquation);
+                    call.prt_to_context("SENSOR8AT" + temperatureEquation);
+
                 }
-                /****************** END COMPORT 1 *********************/
-                /****************** START COMPORT 2 *********************/
-                int x_sensor_2 = 0;
-                int y_sensor_2 = 0;
-                int x_temp_sensor_2 = 0;
-                int y_temp_sensor_2 = 0;
-                read_string_array_from_input_sensor_2 = sensorsCOM_ports[2].readHexStringArray(1);// Read CO2 and temperature for sensor_2
-          
-                array_from_input_sensor_2[counter_sensor_2] =  read_string_array_from_input_sensor_2[0];
-                counter_sensor_2++;
-                if(counter_sensor_2 == 12)
-                {
-                   for( num_sensor_2 = 0;num_sensor_2 < 10; num_sensor_2++)
-                    {
-                        if(array_from_input_sensor_2[num_sensor_2].equals("43")){                     
-                            x_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+1], 16);
-                            y_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+2], 16);                         
-                        }
-                        if(array_from_input_sensor_2[num_sensor_2].equals("54")){
-                            x_temp_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+1], 16);
-                            y_temp_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+2], 16);                         
-                        }  
-                        
-                    }
-                    counter_sensor_2 = 0;
-               
-                /* int humidity_sensor_2 =x_sensor_2*256+y_sensor_2;
-                int temp_sensor_2 = x_temp_sensor_2*256+y_temp_sensor_2; */
-                
-                double CO2_Equation_sensor_2 =((x_sensor_2*256+y_sensor_2)/1024.0*2000);
-                double temperatureEquation_sensor2 =((x_sensor_2*256+y_sensor_2)/1024.0*90)/1.8;
-                
-                System.out.println("CO2_Equation:"+ CO2_Equation_sensor_2);
-                System.out.println("Temperature SENSOR 2: "+ temperatureEquation_sensor2);
-                }
-                /****************** END COMPORT 2 *********************/
-                                
-          /**************** 6/4*************************/
+                /**
+                 * **************** END COMPORT 1 ********************
+                 */
+                /**
+                 * **************** START COMPORT 2 ********************
+                 */
+//                int x_sensor_2 = 0;
+//                int y_sensor_2 = 0;
+//                int x_temp_sensor_2 = 0;
+//                int y_temp_sensor_2 = 0;
+//                read_string_array_from_input_sensor_2 = sensorsCOM_ports[2].readHexStringArray(1);// Read CO2 and temperature for sensor_2
+//          
+//                array_from_input_sensor_2[counter_sensor_2] =  read_string_array_from_input_sensor_2[0];
+//                counter_sensor_2++;
+//                if(counter_sensor_2 == 12)
+//                {
+//                   for( num_sensor_2 = 0;num_sensor_2 < 10; num_sensor_2++)
+//                    {
+//                        if(array_from_input_sensor_2[num_sensor_2].equals("43")){                     
+//                            x_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+1], 16);
+//                            y_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+2], 16);                         
+//                        }
+//                        if(array_from_input_sensor_2[num_sensor_2].equals("54")){
+//                            x_temp_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+1], 16);
+//                            y_temp_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+2], 16);                         
+//                        }  
+//                        
+//                    }
+//                    counter_sensor_2 = 0;
+//               
+//                /* int humidity_sensor_2 =x_sensor_2*256+y_sensor_2;
+//                int temp_sensor_2 = x_temp_sensor_2*256+y_temp_sensor_2; */
+//                
+//                double CO2_Equation_sensor_2 =((x_sensor_2*256+y_sensor_2)/1024.0*2000);
+//                double temperatureEquation_sensor2 =((x_sensor_2*256+y_sensor_2)/1024.0*90)/1.8;
+//                
+//                System.out.println("CO2_Equation:"+ CO2_Equation_sensor_2);
+//                  outToContext.println("SENSOR0FC"+CO2_Equation_sensor_2);
+//                System.out.println("Temperature SENSOR 2: "+ temperatureEquation_sensor2);
+//                  outToContext.println("SENSOR0FT"+temperatureEquation_sensor2);
+//
+//                }
+                /**
+                 * **************** END COMPORT 2 ********************
+                 */
+
             } catch (SerialPortException ex) {
-                
-            
+
                 Logger.getLogger(SensorThread.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-            //System.out.println("** 1111 *****");
-               
-                    //Closing the port
 
-                //serialPort.closePort();
+            //Closing the port
+            //serialPort.closePort();
         }// 
-    
-       // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
+        // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
     /*@Override
     public void serialEvent(SerialPortEvent event) {
         if(event.isRXCHAR()&& event.getEventValue()>0){
@@ -265,225 +321,445 @@ public SensorThread(SerialPort [] sensorer){
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }*/
 
-   class PortReader implements SerialPortEventListener{
+    class PortReader implements SerialPortEventListener {
 
-    @Override
-    public void serialEvent(SerialPortEvent event) {
-        if(event.isRXCHAR()&& event.getEventValue()>0){
-        try{
-         String received_data = sensorsCOM_ports[1].readString(event.getEventValue());
-         System.out.println("Received response:"+received_data);
-        }catch(SerialPortException e){
-                System.out.println("Error in receiving string");
+        @Override
+        public void serialEvent(SerialPortEvent event) {
+            if (event.isRXCHAR() && event.getEventValue() > 0) {
+                try {
+                    String received_data = sensorsCOM_ports[1].readString(event.getEventValue());
+                    System.out.println("Received response:" + received_data);
+                } catch (SerialPortException e) {
+                    System.out.println("Error in receiving string");
+                }
+            }
         }
-   } 
-}
-   }
+    }
 
 }
-
-
-
 
 class EchoHandler extends Thread {
-    String userInput = "hrj"; 
+
+    String userInput = "hrj";
     Socket client;
-    Socket echoSocket = null; 
-    String[] portNames= null;
-    SerialPort [] serialPorts = null;
- 
+    Socket echoSocket = null;
+    String[] portNames = null;
+    SerialPort[] serialPorts = null;
+    Callbackhome call;
+
     long startTimeH = System.nanoTime();
-    EchoHandler(Socket  client, SerialPort [] ports){
-            this.client =  client;   
-            serialPorts = ports;
-            
+
+    Socket contextSocket;
+    PrintWriter outToContext = null;
+
+    EchoHandler(Socket client, SerialPort[] ports, Callbackhome call) {
+        this.call = call;
+        this.client = client;
+        serialPorts = ports;
+        System.out.println("** this.server = new ServerSocket(9999); *****");
+
     }// end constructor
     long stopTimeH = System.nanoTime();
     long durationH = stopTimeH - startTimeH;
-    
-         public void run(){
-            try{
-                    System.out.println("durationH "+durationH);
 
-                    try {
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(
+    //ceiling lamp boolean values for 4 different lamps
+    boolean lampA = false;
+    boolean lampB = false;
+    boolean lampC = false;
+    boolean lampD = false;
+    boolean rotate = false;
+    boolean allLamps=false;
+
+    public void run() {
+        try {
+            System.out.println("durationH " + durationH);
+
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(
                         client.getInputStream()));
-                        
-                       
 
-                        while (true) {
-                            
-                          System.out.println("Android discovered");
-                            String line = reader.readLine(); // enter
-                            String REGEX_Android = "A"; // A: !!
-                            String REGEX_Kinect = "K";
+                while (true) {
 
-                            Pattern pA = Pattern.compile(REGEX_Android);
-                            Matcher mA = pA.matcher(line);
+                    System.out.println("Android discovered");
+                    String line = reader.readLine(); // enter
+                    String REGEX_Android = "A"; // A: !!
+                    String REGEX_Kinect = "K";
 
-                            Pattern pK = Pattern.compile(REGEX_Kinect);
-                            Matcher mK = pK.matcher(line);
+                    Pattern pA = Pattern.compile(REGEX_Android);
+                    Matcher mA = pA.matcher(line);
 
-                        
-                            if (mA.find()) {
-                                System.out.println("Android discovered");
-                                String[] token0 = line.split("A|:| |#");
-                                System.out.println("android data start......................");
+                    Pattern pK = Pattern.compile(REGEX_Kinect);
+                    Matcher mK = pK.matcher(line);
 
-                                for (int q = 0; q < token0.length; q++) {
-                                    System.out.println(token0[q]);
-                                }
-                                System.out.println("end of android data................................");
-                      //..................... ROOM 1 .......................................
+                    if (mA.find()) {
+                        System.out.println("Android discovered");
+                        String[] token0 = line.split("A|:| |#");
+                        System.out.println("android data start......................");
+
+                        for (int q = 0; q < token0.length; q++) {
+                            System.out.println(token0[q]);
+                        }
+                        System.out.println("end of android data................................");
+                        //..................... ROOM 1 .......................................
 //******************* WORKING ONLY WITH THIS RITGHT NOW 23/3 ********************************************************//
                         long startTimeC_Send = System.nanoTime();
-                        if(token0[2].equals("R1")){
-                            if(token0[3].equals("FL")){
-                                if(token0[4].equals("1")){
+                        if (token0[2].equals("R1")) {
+                            if (token0[3].equals("FL")) {
+                                if (token0[4].equals("1")) {
                                     System.out.println("Turn ON Floor lamp in Room 1");
                                     serialPorts[0].writeBytes("1".getBytes());
+                                    call.prt_to_context("R1FLON");
+                                   // outToContext.println("R1FLON");
                                 }//1 : on
-                                else if(token0[4].equals("2")){
+                                else if (token0[4].equals("2")) {
                                     System.out.println("Turn OFF Floor lamp in Room 1");
                                     serialPorts[0].writeBytes("2".getBytes());
+//                                    outToContext.println("R1FLOFF");
+                                    call.prt_to_context("R1FLOFF");
+                                    
                                 }//2 : off
-                           }//FL
-                            if(token0[3].equals("CL")){
-                                if(token0[4].equals("1")){
-                                    System.out.println("Turn ON Ceiling lamp in Room 1");
-                                    serialPorts[1].writeBytes("1".getBytes());
+                            }//FL
+                            if (token0[3].equals("CL")) {
+//                                
+                                if (token0[4].equals("1")) {
+                                    if (lampA = false) {
+                                        System.out.println("Turn ON Ceiling lampA in Room 1");
+                                        serialPorts[1].writeBytes("1".getBytes());
+                                        //outToContext.println("A1");
+                                        call.prt_to_context("A1");
+                                        lampA = true;
+                                    } else {
+                                        System.out.println("Turn OFF Ceiling lampA in Room 1");
+                                        serialPorts[1].writeBytes("1".getBytes());
+                                      //outToContext.println("A0");
+                                        call.prt_to_context("A0");
+                                        lampA = false;
+                                    }
+                                }//Lamp A
+                                if (token0[4].equals("2")) {
+                                    if (lampB = false) {
+                                        System.out.println("Turn ON Ceiling lampB in Room 1");
+                                        serialPorts[1].writeBytes("2".getBytes());
+                                     //   outToContext.println("B1");
+                                        call.prt_to_context("B1");
+                                        lampB = true;
+                                    } else {
+                                        System.out.println("Turn OFF Ceiling lampB in Room 1");
+                                        serialPorts[1].writeBytes("2".getBytes());
+                                     //   outToContext.println("B0");
+                                        call.prt_to_context("B0");
+                                        lampB = false;
+                                    }
+                                }//Lamp B 
+                                if (token0[4].equals("3")) {
+                                    if (lampC = false) {
+                                        System.out.println("Turn ON Ceiling lampC in Room 1");
+                                        serialPorts[1].writeBytes("3".getBytes());
+                                        //outToContext.println("C1");
+                                        call.prt_to_context("C1");
+                                        lampC = true;
+                                    } else {
+                                        System.out.println("Turn OFF Ceiling lampC in Room 1");
+                                        serialPorts[1].writeBytes("3".getBytes());
+                                       // outToContext.println("C0");
+                                       call.prt_to_context("C0");
+                                        lampC = false;
+                                    }
+                                }//Lamp C
+                                if (token0[4].equals("4")) {
+                                    if (lampD = false) {
+                                        System.out.println("Turn ON Ceiling lampD in Room 1");
+                                        serialPorts[1].writeBytes("4".getBytes());
+                                        //outToContext.println("D1");
+                                        call.prt_to_context("D1");
+                                        lampD = true;
+                                    } else {
+                                        System.out.println("Turn OFF Ceiling lampD in Room 1");
+                                        serialPorts[1].writeBytes("4".getBytes());
+                                        //outToContext.println("D0");
+                                        call.prt_to_context("D0");
+                                        lampD = false;
+                                    }
+                                }//Lamp D
+                                if(token0[4].equals("5")){
+                                    if(allLamps =false){
+                                    System.out.println("Turn ON Ceiling lamps in Room 1");
+                                    serialPorts[1].writeBytes("5".getBytes());
+                                    call.prt_to_context("5");
+                                    allLamps=true;
+                                    }
                                 }//1
-                                else if(token0[4].equals("2")){
-                                    System.out.println("Turn OFF Ceiling lamp in Room 1");
-                                    serialPorts[1].writeBytes("2".getBytes());
-                                }//2 : off                            
+                                else if(token0[4].equals("5")){
+                                    System.out.println("Turn OFF ALL Ceiling lamps in Room 1");
+                                    serialPorts[1].writeBytes("5".getBytes());
+                                    call.prt_to_context("5");
+                                    allLamps=false;
+                                }// All LAMPS
                             }//CL
 //******************* WORKING ONLY WITH THIS RITGHT NOW 23/3********************************************************//
 
-                            if(token0[3].equals("FN")){
-                                if(token0[4].equals("1")){
+                            if (token0[3].equals("FN")) {
+                                   if (token0[4].equals("1")) {
                                     System.out.println("Turn ON Fan in Room 1");
-                                    
+                                    serialPorts[3].writeBytes("1".getBytes());
+                                    call.prt_to_context("R1FNON");
+
                                 }//1
-                                else if(token0[4].equals("2")){
+                                else if (token0[4].equals("2")) {
                                     System.out.println("Turn OFF Fan in Room 1");
-                                    
+                                    serialPorts[3].writeBytes("2".getBytes());
+                                    call.prt_to_context("R1FNOFF");
+
                                 }//2 : off
-                            }//FN
-                            if(token0[3].equals("CR")){
-                                if(token0[4].equals("1")){
-                                    System.out.println("Scroll Up Curtain in Room 1");
-                                    //serialPorts[?].writeBytes("1".getBytes()); //added 2016.03.30........................................
+                                if (token0[4].equals("3")) {
+                                    System.out.println("Speed up Fan in Room 1");
+                                    serialPorts[3].writeBytes("3".getBytes());
+                                    call.prt_to_context("R1FNSPEEDUP");
+
                                 }//1
-                                else if(token0[4].equals("2")){
+                                if (token0[4].equals("4")) {
+                                    System.out.println("Speed down Fan in Room 1");
+                                    serialPorts[3].writeBytes("4".getBytes());
+                                    call.prt_to_context("R1FNDOWN");
+                                }//1
+                                if (token0[4].equals("5")) {
+                                    if (rotate = false) {
+                                    System.out.println("Rotation ON Fan in Room 1");
+                                    serialPorts[3].writeBytes("5".getBytes());
+                                    rotate = true;
+                                    call.prt_to_context("R1FNROTATEON");
+                                    }
+                                    else{
+                                    System.out.println("Rotation OFF Fan in Room 1");
+                                    serialPorts[3].writeBytes("5".getBytes());
+                                    rotate = false;
+                                    call.prt_to_context("R1FNROTATEOFF");
+                                    }
+                                }
+                            }//FN
+                            if (token0[3].equals("CR")) {
+                                if (token0[4].equals("1")) {
+                                    System.out.println("Scroll Up Curtain in Room 1");
+                                    serialPorts[2].writeBytes("1".getBytes()); //added 2016.03.30........................................
+                                   //outToContext.println("CURTAINUP");
+                                      call.prt_to_context("CURTAINUP");
+                                }//1
+                                else if (token0[4].equals("2")) {
                                     System.out.println("Stop Curtain in Room 1");
-                                 //serialPorts[?].writeBytes("2".getBytes()); //added 2016.03.30........................................   
-                                }else if(token0[4].equals("3")) { //added 2016.03.30........................................
-                                	System.out.println("Scroll Down Curtain in Room 1");
-                                	//serialPorts[?].writeBytes("3".getBytes());      
+                                    serialPorts[2].writeBytes("2".getBytes()); //added 2016.03.30........................................   
+                                    //outToContext.println("CURTAINSTOP");
+                                        call.prt_to_context("CURTAINSTOP");
+                                } else if (token0[4].equals("3")) { //added 2016.03.30........................................
+                                    System.out.println("Scroll Down Curtain in Room 1");
+                                    serialPorts[2].writeBytes("3".getBytes());    
+                                  //outToContext.println("CURTAINDOWN");
+                                      call.prt_to_context("CURTAINDOWN");
                                 }//2 : off
                             }//CR
                         }//R1
                         long stopTimeC_Send = System.nanoTime();
-                        long durationC_Send =stopTimeC_Send - startTimeC_Send;
-                                System.out.println("durationC_Send "+durationC_Send);
+                        long durationC_Send = stopTimeC_Send - startTimeC_Send;
+                        System.out.println("durationC_Send " + durationC_Send);
 
-     System.out.println("end of x coordinates");
-                 }//if for android
+                        System.out.println("end of x coordinates");
+                    }//if for android
 
-                              double[] coordinate_y = new double[100];
+                    double[] coordinate_y = new double[100];
 
-                            if (mK.find()) {
-                                System.out.println("Kinect discovered");
-                                String[] token1 = line.split("K| |:|#");
-                                System.out.println("kinect data start......................");
-                                // print whole index
+                    if (mK.find()) {
+                        System.out.println("Kinect discovered");
+                        String[] token1 = line.split("K| |:|#");
+                        System.out.println("kinect data start......................");
+                        // print whole index
 
-                                for (int k = 0; k < token1.length; k++) {
-                                    System.out.println(token1[k] + ";"); // don't count ;,
-                                 }
-  
-                                System.out.println("end of Kinect data.................................");
-                                System.out.println("***********************");
-                                System.out.println("x");
+                        for (int k = 0; k < token1.length; k++) {
+                            System.out.println(token1[k] + ";"); // don't count ;,
+                        }
 
-                                for (int v = 6; v < token1.length; v += 6) {
-                                    System.out.println(token1[v]);
-                                    coordinate_y[v + 1] = Double.parseDouble(token1[v + 1]);
-                                    System.out.println(token1[v + 1]);                  
-                                }// for
+                        System.out.println("end of Kinect data.................................");
+                        System.out.println("***********************");
+                        System.out.println("x");
 
-		//..................... ROOM 1 .......................................
-                
-		if(token1[2].equals("R1")){
-			if(token1[3].equals("FL")){
-				if(token1[4].equals("1")){
-					 System.out.println("Turn ON Floor lamp in Room 1");
-					 serialPorts[0].writeBytes("1".getBytes());
-                                         
-				}//1 : on
-				else if(token1[4].equals("2")){
-					System.out.println("Turn OFF Floor lamp in Room 1");
-					serialPorts[0].writeBytes("2".getBytes());
-				}//2 : off			
-			}//FL
-			if(token1[3].equals("CL")){
-				if(token1[4].equals("1")){
-					 System.out.println("Turn ON Ceiling lamp in Room 1");
-					 serialPorts[1].writeBytes("1".getBytes());
-				}//1
-				else if(token1[4].equals("2")){
-					System.out.println("Turn OFF Ceiling lamp in Room 1");
-					serialPorts[1].writeBytes("2".getBytes());
-				}//2 : off				
-			}//CL
-			if(token1[3].equals("FN")){
-				if(token1[4].equals("1")){
-					 System.out.println("Turn ON Fan in Room 1");
-					 
-				}//1
-				else if(token1[4].equals("2")){
-					System.out.println("Turn OFF Fan in Room 1");
-					
-				}//2 : off			
-			}//FN
-			if(token1[3].equals("CR")){
-				if(token1[4].equals("1")){
-					 System.out.println("Scroll Up Curtain in Room 1");
-					 
-				}//1
-				else if(token1[4].equals("2")){
-					System.out.println("Scroll Down Curtain in Room 1");
-					
-				}//2 : off
-		        }//CR
-	            }//R1
-                 }// if for kinect
-                 
-                System.out.println("HHHHHH 1");
+                        for (int v = 6; v < token1.length; v += 6) {
+                            System.out.println(token1[v]);
+                            coordinate_y[v + 1] = Double.parseDouble(token1[v + 1]);
+                            System.out.println(token1[v + 1]);
+                        }// for
 
-                String[] token0 = line.split("A|K|:| |#"); // == parseInt ; Data
+                        //..................... ROOM 1 .......................................
+                        if (token1[2].equals("R1")) {
+                            if (token1[3].equals("FL")) {
+                                if (token1[4].equals("1")) {
+                                    System.out.println("Turn ON Floor lamp in Room 1");
+                                    serialPorts[0].writeBytes("1".getBytes());
+                                    call.prt_to_context("R1FLON");
 
-                  }//end while(true)
+                                }//1 : on
+                                else if (token1[4].equals("2")) {
+                                    System.out.println("Turn OFF Floor lamp in Room 1");
+                                    serialPorts[0].writeBytes("2".getBytes());
+                                    call.prt_to_context("R1FLOFF");
+                                }//2 : off			
+                            }//FL
+                           if (token1[3].equals("CL")) {  
+                                if (token1[4].equals("1")) {
+                                    if (lampA = false) {
+                                        System.out.println("Turn ON Ceiling lampA in Room 1");
+                                        serialPorts[1].writeBytes("1".getBytes());
+                                        //outToContext.println("A1");
+                                        call.prt_to_context("A1");
+                                        lampA = true;
+                                    } else {
+                                        System.out.println("Turn OFF Ceiling lampA in Room 1");
+                                        serialPorts[1].writeBytes("1".getBytes());
+                                      //  outToContext.println("A0");
+                                        call.prt_to_context("A0");
+                                        lampA = false;
+                                    }
+                                }//Lamp A
+                                if (token1[4].equals("2")) {
+                                    if (lampB = false) {
+                                        System.out.println("Turn ON Ceiling lampB in Room 1");
+                                        serialPorts[1].writeBytes("2".getBytes());
+                                        //outToContext.println("B1");
+                                        call.prt_to_context("B1");
+                                        lampB = true;
+                                    } else {
+                                        System.out.println("Turn OFF Ceiling lampB in Room 1");
+                                        serialPorts[1].writeBytes("2".getBytes());
+                                        //outToContext.println("B0");
+                                        call.prt_to_context("B0");
+                                        lampB = false;
+                                    }
+                                }//Lamp B 
+                                if (token1[4].equals("3")) {
+                                    if (lampC = false) {
+                                        System.out.println("Turn ON Ceiling lampC in Room 1");
+                                        serialPorts[1].writeBytes("3".getBytes());
+                                        //outToContext.println("C1");
+                                        lampC = true;
+                                    } else {
+                                        System.out.println("Turn OFF Ceiling lampC in Room 1");
+                                        serialPorts[1].writeBytes("3".getBytes());
+                                       // outToContext.println("C0");
+                                       call.prt_to_context("C0");
+                                        lampC = false;
+                                    }
+                                }//Lamp C
+                                if (token1[4].equals("4")) {
+                                    if (lampD = false) {
+                                        System.out.println("Turn ON Ceiling lampD in Room 1");
+                                        serialPorts[1].writeBytes("4".getBytes());
+                                        //outToContext.println("D1");
+                                        call.prt_to_context("D1");
+                                        lampD = true;
+                                    } else {
+                                        System.out.println("Turn OFF Ceiling lampD in Room 1");
+                                        serialPorts[1].writeBytes("4".getBytes());
+                                        //outToContext.println("D0");
+                                        call.prt_to_context("D0");
+                                        lampD = false;
+                                    }
+                                }//Lamp D
+                                if(token1[4].equals("5")){
+                                    if(allLamps =false){
+                                    System.out.println("Turn ON Ceiling lamps in Room 1");
+                                    serialPorts[1].writeBytes("5".getBytes());
+                                    call.prt_to_context("5");
+                                    allLamps=true;
+                                    }
+                                }//1
+                                else if(token1[4].equals("5")){
+                                    System.out.println("Turn OFF ALL Ceiling lamps in Room 1");
+                                    serialPorts[1].writeBytes("5".getBytes());
+                                    call.prt_to_context("5");
+                                    allLamps=false;
+                                }// All LAMPS
+                            }//CL
+                            if (token1[3].equals("FN")) {
+                                if (token1[4].equals("1")) {
+                                    System.out.println("Turn ON Fan in Room 1");
+                                    serialPorts[3].writeBytes("1".getBytes());
+                                    call.prt_to_context("R1FNON");
 
-                } catch (Exception e) {
-                    System.err.println("Exception caught: client disconnected.");
-                    System.err.println(e.getMessage());
-                } finally {
-                    try {
-                        client.close();
+                                }//1
+                                else if (token1[4].equals("2")) {
+                                    System.out.println("Turn OFF Fan in Room 1");
+                                    serialPorts[3].writeBytes("2".getBytes());
+                                    call.prt_to_context("R1FNOFF");
+
+                                }//2 : off
+                                if (token1[4].equals("3")) {
+                                    System.out.println("Speed up Fan in Room 1");
+                                    serialPorts[3].writeBytes("3".getBytes());
+                                    call.prt_to_context("R1FNSPEEDUP");
+
+                                }//1
+                                if (token1[4].equals("4")) {
+                                    System.out.println("Speed down Fan in Room 1");
+                                    serialPorts[3].writeBytes("4".getBytes());
+                                    call.prt_to_context("R1FNDOWN");
+
+                                }//1
+                                if (token1[4].equals("5")) {
+                                    if (rotate = false) {
+                                    System.out.println("Rotation ON Fan in Room 1");
+                                    serialPorts[3].writeBytes("5".getBytes());
+                                    rotate = true;
+                                    call.prt_to_context("R1FNROTATEON");
+                                    }
+                                    else{
+                                    System.out.println("Rotation OFF Fan in Room 1");
+                                    serialPorts[3].writeBytes("5".getBytes());
+                                    rotate = false;
+                                    call.prt_to_context("R1FNROTATEOFF");
+                                    }
+                                }//1
+                            }//FN
+                            if (token1[3].equals("CR")) {
+                                if (token1[4].equals("1")) {
+                                    System.out.println("Scroll Up Curtain in Room 1");
+                                    serialPorts[2].writeBytes("1".getBytes()); //added 2016.03.30........................................
+                                    //outToContext.println("CURTAINUP");
+                                      call.prt_to_context("CURTAINUP");
+                                }//1
+                                else if (token1[4].equals("2")) {
+                                    System.out.println("Stop Curtain in Room 1");
+                                    serialPorts[2].writeBytes("2".getBytes()); //added 2016.03.30........................................   
+                                    //outToContext.println("CURTAINSTOP");
+                                    call.prt_to_context("CURTAINSTOP");
+                                } else if (token1[4].equals("3")) { //added 2016.03.30........................................
+                                    System.out.println("Scroll Down Curtain in Room 1");
+                                    serialPorts[2].writeBytes("3".getBytes());    
+                                    //outToContext.println("CURTAINDOWN");
+                                    call.prt_to_context("CURTAINDOWN");
+                                }//2 : off
+                            }//CR
+                        }//R1
+                    }// if for kinect
+
+                    System.out.println("HHHHHH 1");
+
+                    String[] token0 = line.split("A|K|:| |#"); // == parseInt ; Data
+
+                }//end while(true)
+
+            } catch (Exception e) {
+                System.err.println("Exception caught: client disconnected.");
+                System.err.println(e.getMessage());
+            } finally {
+                try {
+                    client.close();
 //                        os.close();
-  //                      os1.close();
-                    } catch (Exception e) {
-                        ;
-                    }
+                    //                      os1.close();
+                } catch (Exception e) {
+                    ;
                 }
-             }catch (Exception ex) {
-                Logger.getLogger(EchoHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
+        } catch (Exception ex) {
+            Logger.getLogger(EchoHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
-  }//end run
-
-   
+    }//end run
 
 }// EchoHandler
