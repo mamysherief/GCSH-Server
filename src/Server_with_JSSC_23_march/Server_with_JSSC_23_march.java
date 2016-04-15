@@ -17,35 +17,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jssc.*;
 
-public class Server_with_JSSC_23_march implements Callbackhome{
-    
+public class Server_with_JSSC_23_march implements Callbackhome {
+
     Socket contextSocket;
     PrintWriter outToContext;
-    
-    String hostName = "194.47.32.117"; // context server adress
-    int portNumber = 4444;
+
+    String hostName = "194.47.40.119"; // context server adress 194.47.32.117
+    int portNumber = 2015;//4444;
 
     public Server_with_JSSC_23_march() {
         try {
             contextSocket = new Socket(hostName, portNumber);
+            outToContext = new PrintWriter(contextSocket.getOutputStream(), true);
         } catch (IOException ex) {
             Logger.getLogger(Server_with_JSSC_23_march.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    
 
-    @Override
-    public void prt_to_context(String value){
-        try {
-            outToContext = new PrintWriter(contextSocket.getOutputStream(), true);
-            outToContext.println(value );
-            //outToContext.close();
-            
-        } catch (IOException ex) {
-            Logger.getLogger(Server_with_JSSC_23_march.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+   // @Override
+    synchronized public void prt_to_context(String value) {
+        outToContext.println(value);
     }
 
     public static void main(String[] args) {
@@ -55,7 +46,7 @@ public class Server_with_JSSC_23_march implements Callbackhome{
                         System.out.println(port);
                     }*/
         Callbackhome call = new Server_with_JSSC_23_march();
-        
+
         SerialPort[] serialPorts = new SerialPort[7];
         serialPorts[0] = new SerialPort("COM41"); //floor lamp BB6A
         serialPorts[1] = new SerialPort("COM45"); //ceiling lamp BB69
@@ -63,31 +54,35 @@ public class Server_with_JSSC_23_march implements Callbackhome{
         serialPorts[3] = new SerialPort("COM47"); //fan
 
         SerialPort[] sensorer = new SerialPort[3];
-        //sensorer[0] = new SerialPort("COM40"); //Christians sensor
+        //sensorer[0] = new SerialPort("COM48"); //Christians sensor
         sensorer[1] = new SerialPort("COM42");// Sensor 1 Humidity+Temperature
-        //sensorer[2] = new SerialPort("COM43"); // Sensor 2 CO2+ temperature
+        sensorer[2] = new SerialPort("COM43"); // Sensor 2 CO2+ temperature
 
 //        String hostName = "194.47.32.117"; // context server adress
 //        int portNumber = 4444;
 //        Socket contextSocket;
 //        PrintWriter outToContext = null;
-
         try {
 
             ServerSocket server = new ServerSocket(4444);
 
-            
             //outToContext = new PrintWriter(contextSocket.getOutputStream(), true);
-
             try {
                 // open port for communication
+                System.out.println("Adding floor lamp");
                 serialPorts[0].openPort();
+                System.out.println("Adding Celing lamp");
                 serialPorts[1].openPort();
+                System.out.println("Adding curtain");
                 serialPorts[2].openPort();
+                System.out.println("Adding fan");
                 serialPorts[3].openPort();
-                //sensorer[0].openPort();                               
+          //      System.out.println("Adding break point sensor");
+            //    sensorer[0].openPort();
+                System.out.println("Adding Humidity and Temperature sensor");
                 sensorer[1].openPort();
-                //sensorer[2].openPort();
+                System.out.println("Adding CO2 sensor");
+                sensorer[2].openPort();
                 System.out.println("OPEN SERIAL PORT -PORT DONE");
 
                 // baundRate, numberOfDataBits, numberOfStopBits, parity
@@ -96,14 +91,13 @@ public class Server_with_JSSC_23_march implements Callbackhome{
                 serialPorts[2].setParams(9600, 8, 1, 0);
                 serialPorts[3].setParams(9600, 8, 1, 0);
 
-                //sensorer[0].setParams(9600, 8, 1, 0);
+              //  sensorer[0].setParams(9600, 8, 1, 0);
                 sensorer[1].setParams(9600, 8, 1, 0);
-                //sensorer[2].setParams(9600, 8, 1, 0);
+                sensorer[2].setParams(9600, 8, 1, 0);
 
-                SensorThread sensor = new SensorThread(sensorer,call);
-                System.out.println("** SensorThread sensor = new SensorThread(sensorer);");
+                SensorThread sensor = new SensorThread(sensorer, call);
                 sensor.start();
-                System.out.println("** sensor.start();");
+                System.out.println("Waiting for action");
 
                 // close port
                 //serialPort.closePort();
@@ -113,7 +107,8 @@ public class Server_with_JSSC_23_march implements Callbackhome{
 
             while (true) {
                 Socket client = server.accept();
-                EchoHandler handler = new EchoHandler(client, serialPorts ,call);
+                System.out.println("Client attached");
+                EchoHandler handler = new EchoHandler(client, serialPorts, call);
                 handler.start();
 
             }
@@ -139,10 +134,6 @@ class SensorThread extends Thread {
         this.call = call;
         try {
             this.server = new ServerSocket(9999);
-            //  this.contextSocket = contextSocket;
-            System.out.println("** this.server = new ServerSocket(9999); *****");
-            // outToContext = new PrintWriter(contextSocket.getOutputStream(), true);
-
         } catch (IOException ex) {
             Logger.getLogger(SensorThread.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -172,7 +163,7 @@ class SensorThread extends Thread {
         String[] array_from_input_sensor_2 = new String[12];
         int counter_sensor_2 = 0;
         int num_sensor_2 = 0;
-        
+
         /**
          * ************ end sensors **************************
          */
@@ -183,25 +174,25 @@ class SensorThread extends Thread {
                 /**
                  * **************** START CHRISTIAN SENSOR ********************
                  */
-//               buffer = sensorsCOM_ports[0].readBytes(1);//1
-//                if(buffer[0]=='A'){
+//                buffer = sensorsCOM_ports[0].readBytes(1);//1
+//                if (buffer[0] == 'A') {
 //                    System.out.println("A");
 //                    ++nbr_in_room_A;
-//                    System.out.println("NBR IN ROOM A:"+ nbr_in_room_A);
-//                    if(nbr_in_room_B>0){
-//                    --nbr_in_room_B;
-//                    }             
-//                }   
-//                if(buffer[0]=='B'){
+//                    System.out.println("NBR IN ROOM A:" + nbr_in_room_A);
+//                    if (nbr_in_room_B > 0) {
+//                        --nbr_in_room_B;
+//                    }
+//                }
+//                if (buffer[0] == 'B') {
 //                    System.out.println("B");
 //                    ++nbr_in_room_B;
-//                     System.out.println("NBR IN ROOM B:"+ nbr_in_room_B);
-//                    if(nbr_in_room_A>0){
-//                    --nbr_in_room_A;
+//                    System.out.println("NBR IN ROOM B:" + nbr_in_room_B);
+//                    if (nbr_in_room_A > 0) {
+//                        --nbr_in_room_A;
 //                    }
-//                }    
-//               call.prt_to_context("R1SENSORBP"+nbr_in_room_A+"#");
-//               call.prt_to_context("R2SENSORBP"+nbr_in_room_B+"#");
+//                }
+//                call.prt_to_context("R1SENSORBP" + nbr_in_room_A + "#");
+//                call.prt_to_context("R2SENSORBP" + nbr_in_room_B + "#");
 
                 /**
                  * **************** END CHRISTIAN SENSOR ********************
@@ -236,16 +227,13 @@ class SensorThread extends Thread {
                     /*int humidity1 =x_sensor_1*256+y_sensor_1;
                 int temp_sensor_1 = x_temp_sensor_1*256+y_temp_sensor_1;*/
                     double humidityEquation = (x_sensor_1 * 256 + y_sensor_1) / 1024.0 * 100;
-                    double temperatureEquation = ((x_sensor_1 * (256 + y_sensor_1)) / 1024.0 * 108 + 23) / 1.8;
+                    double temperatureEquation = ((x_temp_sensor_1 * 256 + y_temp_sensor_1) / 1024.0 * 108 - 32 - 9) / 1.8;
 
                     System.out.println("Humidity SENSOR 1: " + humidityEquation);
                     call.prt_to_context("Humidity SENSOR 1: " + humidityEquation);
-                   // outToContext.println("SENSOR8AH" + humidityEquation + "#");
 
                     System.out.println("Temperature SENSOR 1: " + temperatureEquation);
-
-                    //outToContext.println("SENSOR8AT" + temperatureEquation);
-                    call.prt_to_context("SENSOR8AT" + temperatureEquation);
+                    call.prt_to_context("Temperature SENSOR 1:" + temperatureEquation);
 
                 }
                 /**
@@ -254,42 +242,39 @@ class SensorThread extends Thread {
                 /**
                  * **************** START COMPORT 2 ********************
                  */
-//                int x_sensor_2 = 0;
-//                int y_sensor_2 = 0;
-//                int x_temp_sensor_2 = 0;
-//                int y_temp_sensor_2 = 0;
-//                read_string_array_from_input_sensor_2 = sensorsCOM_ports[2].readHexStringArray(1);// Read CO2 and temperature for sensor_2
-//          
-//                array_from_input_sensor_2[counter_sensor_2] =  read_string_array_from_input_sensor_2[0];
-//                counter_sensor_2++;
-//                if(counter_sensor_2 == 12)
-//                {
-//                   for( num_sensor_2 = 0;num_sensor_2 < 10; num_sensor_2++)
-//                    {
-//                        if(array_from_input_sensor_2[num_sensor_2].equals("43")){                     
-//                            x_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+1], 16);
-//                            y_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+2], 16);                         
-//                        }
-//                        if(array_from_input_sensor_2[num_sensor_2].equals("54")){
-//                            x_temp_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+1], 16);
-//                            y_temp_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2+2], 16);                         
-//                        }  
-//                        
-//                    }
-//                    counter_sensor_2 = 0;
-//               
-//                /* int humidity_sensor_2 =x_sensor_2*256+y_sensor_2;
-//                int temp_sensor_2 = x_temp_sensor_2*256+y_temp_sensor_2; */
-//                
-//                double CO2_Equation_sensor_2 =((x_sensor_2*256+y_sensor_2)/1024.0*2000);
-//                double temperatureEquation_sensor2 =((x_sensor_2*256+y_sensor_2)/1024.0*90)/1.8;
-//                
-//                System.out.println("CO2_Equation:"+ CO2_Equation_sensor_2);
-//                  outToContext.println("SENSOR0FC"+CO2_Equation_sensor_2);
-//                System.out.println("Temperature SENSOR 2: "+ temperatureEquation_sensor2);
-//                  outToContext.println("SENSOR0FT"+temperatureEquation_sensor2);
-//
-//                }
+                int x_sensor_2 = 0;
+                int y_sensor_2 = 0;
+                int x_temp_sensor_2 = 0;
+                int y_temp_sensor_2 = 0;
+                read_string_array_from_input_sensor_2 = sensorsCOM_ports[2].readHexStringArray(1);// Read CO2 and temperature for sensor_2
+
+                array_from_input_sensor_2[counter_sensor_2] = read_string_array_from_input_sensor_2[0];
+                counter_sensor_2++;
+                if (counter_sensor_2 == 12) {
+                    for (num_sensor_2 = 0; num_sensor_2 < 10; num_sensor_2++) {
+                        if (array_from_input_sensor_2[num_sensor_2].equals("43")) {
+                            x_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2 + 1], 16);
+                            y_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2 + 2], 16);
+                        }
+                        if (array_from_input_sensor_2[num_sensor_2].equals("54")) {
+                            x_temp_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2 + 1], 16);
+                            y_temp_sensor_2 = Integer.valueOf(array_from_input_sensor_2[num_sensor_2 + 2], 16);
+                        }
+
+                    }
+                    counter_sensor_2 = 0;
+
+                    /* int humidity_sensor_2 =x_sensor_2*256+y_sensor_2;
+                int temp_sensor_2 = x_temp_sensor_2*256+y_temp_sensor_2; */
+                    double CO2_Equation_sensor_2 = ((x_sensor_2 * 256 + y_sensor_2) / 1024.0 * 2000);
+                    double temperatureEquation_sensor2 = ((x_temp_sensor_2 * 256 + y_temp_sensor_2) / 1024.0 * 108 - 32) / 1.8;
+
+                    System.out.println("CO2_Equation:" + CO2_Equation_sensor_2);
+                    call.prt_to_context("SENSOR0FC" + CO2_Equation_sensor_2);
+                    System.out.println("Temperature SENSOR 2: " + temperatureEquation_sensor2);
+                    call.prt_to_context("SENSOR0FT" + temperatureEquation_sensor2);
+
+                }
                 /**
                  * **************** END COMPORT 2 ********************
                  */
@@ -320,7 +305,6 @@ class SensorThread extends Thread {
         }
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }*/
-
     class PortReader implements SerialPortEventListener {
 
         @Override
@@ -368,8 +352,9 @@ class EchoHandler extends Thread {
     boolean lampC = false;
     boolean lampD = false;
     boolean rotate = false;
-    boolean allLamps=false;
+    boolean allLamps = false;
 
+    @Override
     public void run() {
         try {
             System.out.println("durationH " + durationH);
@@ -396,8 +381,8 @@ class EchoHandler extends Thread {
                         String[] token0 = line.split("A|:| |#");
                         System.out.println("android data start......................");
 
-                        for (int q = 0; q < token0.length; q++) {
-                            System.out.println(token0[q]);
+                        for (String token01 : token0) {
+                            System.out.println(token01);
                         }
                         System.out.println("end of android data................................");
                         //..................... ROOM 1 .......................................
@@ -409,97 +394,96 @@ class EchoHandler extends Thread {
                                     System.out.println("Turn ON Floor lamp in Room 1");
                                     serialPorts[0].writeBytes("1".getBytes());
                                     call.prt_to_context("R1FLON");
-                                   // outToContext.println("R1FLON");
+                                    // outToContext.println("R1FLON");
                                 }//1 : on
                                 else if (token0[4].equals("2")) {
                                     System.out.println("Turn OFF Floor lamp in Room 1");
                                     serialPorts[0].writeBytes("2".getBytes());
 //                                    outToContext.println("R1FLOFF");
                                     call.prt_to_context("R1FLOFF");
-                                    
+
                                 }//2 : off
                             }//FL
                             if (token0[3].equals("CL")) {
 //                                
                                 if (token0[4].equals("1")) {
-                                    if (lampA = false) {
+                                    if (!lampA) {
                                         System.out.println("Turn ON Ceiling lampA in Room 1");
                                         serialPorts[1].writeBytes("1".getBytes());
                                         //outToContext.println("A1");
-                                        call.prt_to_context("A1");
+                                        call.prt_to_context("R1CLA1");
                                         lampA = true;
                                     } else {
                                         System.out.println("Turn OFF Ceiling lampA in Room 1");
                                         serialPorts[1].writeBytes("1".getBytes());
-                                      //outToContext.println("A0");
-                                        call.prt_to_context("A0");
+                                        //outToContext.println("A0");
+                                        call.prt_to_context("R1CLA0");
                                         lampA = false;
                                     }
                                 }//Lamp A
                                 if (token0[4].equals("2")) {
-                                    if (lampB = false) {
+                                    if (!lampB) {
                                         System.out.println("Turn ON Ceiling lampB in Room 1");
                                         serialPorts[1].writeBytes("2".getBytes());
-                                     //   outToContext.println("B1");
-                                        call.prt_to_context("B1");
+                                        //   outToContext.println("B1");
+                                        call.prt_to_context("R1CLB1");
                                         lampB = true;
                                     } else {
                                         System.out.println("Turn OFF Ceiling lampB in Room 1");
                                         serialPorts[1].writeBytes("2".getBytes());
-                                     //   outToContext.println("B0");
-                                        call.prt_to_context("B0");
+                                        //   outToContext.println("B0");
+                                        call.prt_to_context("R1CLB0");
                                         lampB = false;
                                     }
                                 }//Lamp B 
                                 if (token0[4].equals("3")) {
-                                    if (lampC = false) {
+                                    if (!lampC) {
                                         System.out.println("Turn ON Ceiling lampC in Room 1");
                                         serialPorts[1].writeBytes("3".getBytes());
                                         //outToContext.println("C1");
-                                        call.prt_to_context("C1");
+                                        call.prt_to_context("R1CLC1");
                                         lampC = true;
                                     } else {
                                         System.out.println("Turn OFF Ceiling lampC in Room 1");
                                         serialPorts[1].writeBytes("3".getBytes());
-                                       // outToContext.println("C0");
-                                       call.prt_to_context("C0");
+                                        // outToContext.println("C0");
+                                        call.prt_to_context("R1CLC0");
                                         lampC = false;
                                     }
                                 }//Lamp C
                                 if (token0[4].equals("4")) {
-                                    if (lampD = false) {
+                                    if (!lampD) {
                                         System.out.println("Turn ON Ceiling lampD in Room 1");
                                         serialPorts[1].writeBytes("4".getBytes());
                                         //outToContext.println("D1");
-                                        call.prt_to_context("D1");
+                                        call.prt_to_context("R1CLD1");
                                         lampD = true;
                                     } else {
                                         System.out.println("Turn OFF Ceiling lampD in Room 1");
                                         serialPorts[1].writeBytes("4".getBytes());
                                         //outToContext.println("D0");
-                                        call.prt_to_context("D0");
+                                        call.prt_to_context("R1CLD0");
                                         lampD = false;
                                     }
                                 }//Lamp D
-                                if(token0[4].equals("5")){
-                                    if(allLamps =false){
-                                    System.out.println("Turn ON Ceiling lamps in Room 1");
-                                    serialPorts[1].writeBytes("5".getBytes());
-                                    call.prt_to_context("5");
-                                    allLamps=true;
+                                if (token0[4].equals("5")) {
+                                    if (!allLamps) {
+                                        System.out.println("Turn ON Ceiling lamps in Room 1");
+                                        serialPorts[1].writeBytes("5".getBytes());
+                                        call.prt_to_context("R1CLON");
+                                        allLamps = true;
+                                    } else {
+                                        System.out.println("Turn OFF ALL Ceiling lamps in Room 1");
+                                        serialPorts[1].writeBytes("5".getBytes());
+                                        call.prt_to_context("R1CLOFF");
+                                        allLamps = false;
                                     }
-                                }//1
-                                else if(token0[4].equals("5")){
-                                    System.out.println("Turn OFF ALL Ceiling lamps in Room 1");
-                                    serialPorts[1].writeBytes("5".getBytes());
-                                    call.prt_to_context("5");
-                                    allLamps=false;
                                 }// All LAMPS
                             }//CL
 //******************* WORKING ONLY WITH THIS RITGHT NOW 23/3********************************************************//
 
                             if (token0[3].equals("FN")) {
-                                   if (token0[4].equals("1")) {
+                                if (token0[4].equals("1")) {
                                     System.out.println("Turn ON Fan in Room 1");
                                     serialPorts[3].writeBytes("1".getBytes());
                                     call.prt_to_context("R1FNON");
@@ -520,41 +504,48 @@ class EchoHandler extends Thread {
                                 if (token0[4].equals("4")) {
                                     System.out.println("Speed down Fan in Room 1");
                                     serialPorts[3].writeBytes("4".getBytes());
-                                    call.prt_to_context("R1FNDOWN");
+                                    call.prt_to_context("R1FNSPEEDDOWN");
                                 }//1
                                 if (token0[4].equals("5")) {
-                                    if (rotate = false) {
-                                    System.out.println("Rotation ON Fan in Room 1");
-                                    serialPorts[3].writeBytes("5".getBytes());
-                                    rotate = true;
-                                    call.prt_to_context("R1FNROTATEON");
-                                    }
-                                    else{
-                                    System.out.println("Rotation OFF Fan in Room 1");
-                                    serialPorts[3].writeBytes("5".getBytes());
-                                    rotate = false;
-                                    call.prt_to_context("R1FNROTATEOFF");
+                                    if (!rotate) {
+                                        System.out.println("Rotation ON Fan in Room 1");
+                                        serialPorts[3].writeBytes("5".getBytes());
+                                        rotate = true;
+                                        call.prt_to_context("R1FNROTATEON");
+                                    } else {
+                                        System.out.println("Rotation OFF Fan in Room 1");
+                                        serialPorts[3].writeBytes("5".getBytes());
+                                        rotate = false;
+                                        call.prt_to_context("R1FNROTATEOFF");
                                     }
                                 }
                             }//FN
                             if (token0[3].equals("CR")) {
-                                if (token0[4].equals("1")) {
-                                    System.out.println("Scroll Up Curtain in Room 1");
-                                    serialPorts[2].writeBytes("1".getBytes()); //added 2016.03.30........................................
-                                   //outToContext.println("CURTAINUP");
-                                      call.prt_to_context("CURTAINUP");
-                                }//1
-                                else if (token0[4].equals("2")) {
-                                    System.out.println("Stop Curtain in Room 1");
-                                    serialPorts[2].writeBytes("2".getBytes()); //added 2016.03.30........................................   
-                                    //outToContext.println("CURTAINSTOP");
+                                switch (token0[4]) {
+                                //1
+                                    case "1":
+                                        System.out.println("Scroll Up Curtain in Room 1");
+                                        serialPorts[2].writeBytes("1".getBytes()); //added 2016.03.30........................................
+                                        //outToContext.println("CURTAINUP");
+                                        call.prt_to_context("CURTAINDOWN");
+                                        break;
+                                    case "2":
+                                        System.out.println("Stop Curtain in Room 1");
+                                        serialPorts[2].writeBytes("2".getBytes()); //added 2016.03.30........................................   
+                                        //outToContext.println("CURTAINSTOP");
                                         call.prt_to_context("CURTAINSTOP");
-                                } else if (token0[4].equals("3")) { //added 2016.03.30........................................
-                                    System.out.println("Scroll Down Curtain in Room 1");
-                                    serialPorts[2].writeBytes("3".getBytes());    
-                                  //outToContext.println("CURTAINDOWN");
-                                      call.prt_to_context("CURTAINDOWN");
-                                }//2 : off
+                                        break;
+                                //2 : off
+                                    case "3":
+                                        //added 2016.03.30........................................
+                                        System.out.println("Scroll Down Curtain in Room 1");
+                                        serialPorts[2].writeBytes("3".getBytes());
+                                        //outToContext.println("CURTAINDOWN");
+                                        call.prt_to_context("CURTAINUP");
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }//CR
                         }//R1
                         long stopTimeC_Send = System.nanoTime();
@@ -571,9 +562,8 @@ class EchoHandler extends Thread {
                         String[] token1 = line.split("K| |:|#");
                         System.out.println("kinect data start......................");
                         // print whole index
-
-                        for (int k = 0; k < token1.length; k++) {
-                            System.out.println(token1[k] + ";"); // don't count ;,
+                        for (String token11 : token1) {
+                            System.out.println(token11 + ";"); // don't count ;,
                         }
 
                         System.out.println("end of Kinect data.................................");
@@ -601,79 +591,79 @@ class EchoHandler extends Thread {
                                     call.prt_to_context("R1FLOFF");
                                 }//2 : off			
                             }//FL
-                           if (token1[3].equals("CL")) {  
+                            if (token1[3].equals("CL")) {
                                 if (token1[4].equals("1")) {
-                                    if (lampA = false) {
+                                    if (!lampA) {
                                         System.out.println("Turn ON Ceiling lampA in Room 1");
                                         serialPorts[1].writeBytes("1".getBytes());
                                         //outToContext.println("A1");
-                                        call.prt_to_context("A1");
+                                        call.prt_to_context("R1CLA1");
                                         lampA = true;
                                     } else {
                                         System.out.println("Turn OFF Ceiling lampA in Room 1");
                                         serialPorts[1].writeBytes("1".getBytes());
-                                      //  outToContext.println("A0");
-                                        call.prt_to_context("A0");
+                                        //  outToContext.println("A0");
+                                        call.prt_to_context("R1CLA0");
                                         lampA = false;
                                     }
                                 }//Lamp A
                                 if (token1[4].equals("2")) {
-                                    if (lampB = false) {
+                                    if (!lampB) {
                                         System.out.println("Turn ON Ceiling lampB in Room 1");
                                         serialPorts[1].writeBytes("2".getBytes());
                                         //outToContext.println("B1");
-                                        call.prt_to_context("B1");
+                                        call.prt_to_context("R1CLB1");
                                         lampB = true;
                                     } else {
                                         System.out.println("Turn OFF Ceiling lampB in Room 1");
                                         serialPorts[1].writeBytes("2".getBytes());
                                         //outToContext.println("B0");
-                                        call.prt_to_context("B0");
+                                        call.prt_to_context("R1CLB0");
                                         lampB = false;
                                     }
                                 }//Lamp B 
                                 if (token1[4].equals("3")) {
-                                    if (lampC = false) {
+                                    if (!lampC) {
                                         System.out.println("Turn ON Ceiling lampC in Room 1");
                                         serialPorts[1].writeBytes("3".getBytes());
                                         //outToContext.println("C1");
+                                        call.prt_to_context("R1CLC1");
                                         lampC = true;
                                     } else {
                                         System.out.println("Turn OFF Ceiling lampC in Room 1");
                                         serialPorts[1].writeBytes("3".getBytes());
-                                       // outToContext.println("C0");
-                                       call.prt_to_context("C0");
+                                        // outToContext.println("C0");
+                                        call.prt_to_context("R1CLC0");
                                         lampC = false;
                                     }
                                 }//Lamp C
                                 if (token1[4].equals("4")) {
-                                    if (lampD = false) {
+                                     if (!lampD) {
                                         System.out.println("Turn ON Ceiling lampD in Room 1");
                                         serialPorts[1].writeBytes("4".getBytes());
                                         //outToContext.println("D1");
-                                        call.prt_to_context("D1");
+                                        call.prt_to_context("R1CLD1");
                                         lampD = true;
                                     } else {
                                         System.out.println("Turn OFF Ceiling lampD in Room 1");
                                         serialPorts[1].writeBytes("4".getBytes());
                                         //outToContext.println("D0");
-                                        call.prt_to_context("D0");
+                                        call.prt_to_context("R1CLD0");
                                         lampD = false;
                                     }
                                 }//Lamp D
-                                if(token1[4].equals("5")){
-                                    if(allLamps =false){
-                                    System.out.println("Turn ON Ceiling lamps in Room 1");
-                                    serialPorts[1].writeBytes("5".getBytes());
-                                    call.prt_to_context("5");
-                                    allLamps=true;
+                                if (token1[4].equals("5")) {
+                                    if (!allLamps) {
+                                        System.out.println("Turn ON Ceiling lamps in Room 1");
+                                        serialPorts[1].writeBytes("5".getBytes());
+                                        call.prt_to_context("R1CLON");
+                                        allLamps = true;
+                                    } else {
+                                        System.out.println("Turn OFF ALL Ceiling lamps in Room 1");
+                                        serialPorts[1].writeBytes("5".getBytes());
+                                        call.prt_to_context("R1CLOFF");
+                                        allLamps = false;
                                     }
-                                }//1
-                                else if(token1[4].equals("5")){
-                                    System.out.println("Turn OFF ALL Ceiling lamps in Room 1");
-                                    serialPorts[1].writeBytes("5".getBytes());
-                                    call.prt_to_context("5");
-                                    allLamps=false;
                                 }// All LAMPS
                             }//CL
                             if (token1[3].equals("FN")) {
@@ -698,42 +688,49 @@ class EchoHandler extends Thread {
                                 if (token1[4].equals("4")) {
                                     System.out.println("Speed down Fan in Room 1");
                                     serialPorts[3].writeBytes("4".getBytes());
-                                    call.prt_to_context("R1FNDOWN");
+                                    call.prt_to_context("R1FNSPEEDDOWN");
 
                                 }//1
                                 if (token1[4].equals("5")) {
-                                    if (rotate = false) {
-                                    System.out.println("Rotation ON Fan in Room 1");
-                                    serialPorts[3].writeBytes("5".getBytes());
-                                    rotate = true;
-                                    call.prt_to_context("R1FNROTATEON");
-                                    }
-                                    else{
-                                    System.out.println("Rotation OFF Fan in Room 1");
-                                    serialPorts[3].writeBytes("5".getBytes());
-                                    rotate = false;
-                                    call.prt_to_context("R1FNROTATEOFF");
+                                    if (!rotate) {
+                                        System.out.println("Rotation ON Fan in Room 1");
+                                        serialPorts[3].writeBytes("5".getBytes());
+                                        rotate = true;
+                                        call.prt_to_context("R1FNROTATEON");
+                                    } else {
+                                        System.out.println("Rotation OFF Fan in Room 1");
+                                        serialPorts[3].writeBytes("5".getBytes());
+                                        rotate = false;
+                                        call.prt_to_context("R1FNROTATEOFF");
                                     }
                                 }//1
                             }//FN
                             if (token1[3].equals("CR")) {
-                                if (token1[4].equals("1")) {
-                                    System.out.println("Scroll Up Curtain in Room 1");
-                                    serialPorts[2].writeBytes("1".getBytes()); //added 2016.03.30........................................
-                                    //outToContext.println("CURTAINUP");
-                                      call.prt_to_context("CURTAINUP");
-                                }//1
-                                else if (token1[4].equals("2")) {
-                                    System.out.println("Stop Curtain in Room 1");
-                                    serialPorts[2].writeBytes("2".getBytes()); //added 2016.03.30........................................   
-                                    //outToContext.println("CURTAINSTOP");
-                                    call.prt_to_context("CURTAINSTOP");
-                                } else if (token1[4].equals("3")) { //added 2016.03.30........................................
-                                    System.out.println("Scroll Down Curtain in Room 1");
-                                    serialPorts[2].writeBytes("3".getBytes());    
-                                    //outToContext.println("CURTAINDOWN");
-                                    call.prt_to_context("CURTAINDOWN");
-                                }//2 : off
+                                switch (token1[4]) {
+                                //1
+                                    case "1":
+                                        System.out.println("Scroll Up Curtain in Room 1");
+                                        serialPorts[2].writeBytes("1".getBytes()); //added 2016.03.30........................................
+                                        //outToContext.println("CURTAINUP");
+                                        call.prt_to_context("CURTAINDOWN");
+                                        break;
+                                    case "2":
+                                        System.out.println("Stop Curtain in Room 1");
+                                        serialPorts[2].writeBytes("2".getBytes()); //added 2016.03.30........................................   
+                                        //outToContext.println("CURTAINSTOP");
+                                        call.prt_to_context("CURTAINSTOP");
+                                        break;
+                                //2 : off
+                                    case "3":
+                                        //added 2016.03.30........................................
+                                        System.out.println("Scroll Down Curtain in Room 1");
+                                        serialPorts[2].writeBytes("3".getBytes());
+                                        //outToContext.println("CURTAINDOWN");
+                                        call.prt_to_context("CURTAINUP");
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }//CR
                         }//R1
                     }// if for kinect
@@ -744,7 +741,7 @@ class EchoHandler extends Thread {
 
                 }//end while(true)
 
-            } catch (Exception e) {
+            } catch (IOException | SerialPortException | NumberFormatException e) {
                 System.err.println("Exception caught: client disconnected.");
                 System.err.println(e.getMessage());
             } finally {
@@ -753,7 +750,7 @@ class EchoHandler extends Thread {
 //                        os.close();
                     //                      os1.close();
                 } catch (Exception e) {
-                    ;
+                    
                 }
             }
         } catch (Exception ex) {
@@ -763,3 +760,4 @@ class EchoHandler extends Thread {
     }//end run
 
 }// EchoHandler
+
